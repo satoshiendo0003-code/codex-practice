@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dental Manual App - プレビュー</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        h1::before {
+            content: "🦷 ";
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            background: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px 10px 0 0;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            opacity: 0.7;
+        }
+
+        .tab.active {
+            opacity: 1;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: 0 10px 10px 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .file-upload {
+            border: 2px dashed #e0e0e0;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-upload:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .file-upload input {
+            display: none;
+        }
+
+        .steps-container {
+            margin-top: 30px;
+        }
+
+        .step {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .step h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .step p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .output-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .download-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .download-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .sidebar {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .sidebar h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-ready {
+            background: #28a745;
+        }
+
+        .status-waiting {
+            background: #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Dental Manual Generator</h1>
+            <p class="subtitle">動画から歯科マニュアルを自動生成します - プレビュー版</p>
+        </header>
+
+        <div class="sidebar">
+            <h3>⚙️ 設定</h3>
+            <div class="form-group">
+                <label>AIモデル</label>
+                <select id="model-select">
+                    <option value="gemini-1.5-pro">gemini-1.5-pro</option>
+                    <option value="gemini-1.5-flash">gemini-1.5-flash</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>マニュアルモード</label>
+                <select id="mode-select">
+                    <option value="detailed">詳細</option>
+                    <option value="simple">簡易</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>対象読者</label>
+                <input type="text" id="audience-input" value="歯科助手" placeholder="例: 歯科助手、新人スタッフ">
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab(0)">📹 動画ソース</button>
+            <button class="tab" onclick="switchTab(1)">✏️ 編集・出力</button>
+        </div>
+
+        <div class="tab-content active" id="tab-0">
+            <h2>🎥 動画ソース</h2>
+            <div id="success-alert" class="alert alert-success">
+                ✅ 動画をアップロードしました！
+            </div>
+
+            <div class="form-group">
+                <label>入力方法を選択</label>
+                <select id="source-type" onchange="toggleSourceType()">
+                    <option value="upload">ファイルアップロード</option>
+                    <option value="youtube">YouTubeリンク</option>
+                </select>
+            </div>
+
+            <div id="upload-section">
+                <div class="file-upload" onclick="document.getElementById('video-file').click()">
+                    <input type="file" id="video-file" accept="video/mp4,video/mov" onchange="handleFileUpload(event)">
+                    <p style="font-size: 48px; margin-bottom: 10px;">📹</p>
+                    <p style="color: #666;">動画ファイルをドラッグ＆ドロップ</p>
+                    <p style="color: #999; font-size: 12px; margin-top: 10px;">またはクリックしてファイルを選択</p>
+                </div>
+                <div id="file-name" style="margin-top: 10px; color: #666; font-size: 14px;"></div>
+            </div>
+
+            <div id="youtube-section" style="display: none;">
+                <div class="form-group">
+                    <label>YouTubeのURLを入力</label>
+                    <input type="text" id="youtube-url" placeholder="https://www.youtube.com/watch?v=...">
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="tab-1">
+            <h2>✏️ マニュアル編集</h2>
+
+            <div id="info-alert" class="alert alert-info">
+                <span class="status-indicator status-ready"></span>
+                状態が復元されました - 編集を続けることができます
+            </div>
+
+            <div class="form-group">
+                <label>マニュアルタイトル</label>
+                <input type="text" id="manual-title" value="歯科治療マニュアル">
+            </div>
+
+            <div class="form-group">
+                <label>マニュアル概要</label>
+                <textarea id="manual-summary">このマニュアルは歯科助手向けの手順書です。基本的な治療補助の流れを説明します。</textarea>
+            </div>
+
+            <div class="steps-container">
+                <h3 style="margin-bottom: 15px;">📝 手順</h3>
+
+                <div class="step">
+                    <h3>ステップ 1: 準備</h3>
+                    <input type="text" value="準備" style="margin-bottom: 10px;" id="step-1-title">
+                    <textarea id="step-1-desc">必要な器具を準備します。滅菌済みの器具を確認し、患者さんをご案内します。</textarea>
+                </div>
+
+                <div class="step">
+                    <h3>ステップ 2: 施術補助</h3>
+                    <input type="text" value="施術補助" style="margin-bottom: 10px;" id="step-2-title">
+                    <textarea id="step-2-desc">歯科医師の指示に従い、器具の受け渡しやバキューム操作を行います。患者さんの状態を常に確認します。</textarea>
+                </div>
+
+                <div class="step">
+                    <h3>ステップ 3: 後片付け</h3>
+                    <input type="text" value="後片付け" style="margin-bottom: 10px;" id="step-3-title">
+                    <textarea id="step-3-desc">使用した器具を洗浄し、滅菌処理に回します。診療室を清掃し、次の患者さんの準備をします。</textarea>
+                </div>
+            </div>
+
+            <hr style="margin: 30px 0; border: none; border-top: 2px solid #e0e0e0;">
+
+            <h3>📤 出力</h3>
+            <div id="generation-success" class="alert alert-success">
+                ✅ 生成が完了しました！
+            </div>
+
+            <div class="output-buttons">
+                <button class="btn btn-primary" onclick="generateWord()">
+                    📄 Word生成
+                </button>
+                <button class="btn btn-primary" onclick="generatePDF()">
+                    📕 PDF生成
+                </button>
+            </div>
+
+            <div class="download-section" id="download-section" style="display: none;">
+                <h3>📥 ダウンロード</h3>
+                <div class="download-buttons">
+                    <button class="btn btn-success" id="download-word-btn" style="display: none;" onclick="downloadWord()">
+                        📄 Download Word
+                    </button>
+                    <button class="btn btn-success" id="download-pdf-btn" style="display: none;" onclick="downloadPDF()">
+                        📕 Download PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // タブ切り替え
+        function switchTab(index) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach((tab, i) => {
+                if (i === index) {
+                    tab.classList.add('active');
+                    contents[i].classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                    contents[i].classList.remove('active');
+                }
+            });
+        }
+
+        // ソースタイプ切り替え
+        function toggleSourceType() {
+            const sourceType = document.getElementById('source-type').value;
+            const uploadSection = document.getElementById('upload-section');
+            const youtubeSection = document.getElementById('youtube-section');
+
+            if (sourceType === 'upload') {
+                uploadSection.style.display = 'block';
+                youtubeSection.style.display = 'none';
+            } else {
+                uploadSection.style.display = 'none';
+                youtubeSection.style.display = 'block';
+            }
+        }
+
+        // ファイルアップロード処理
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const fileName = document.getElementById('file-name');
+                fileName.textContent = `選択されたファイル: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+
+                const alert = document.getElementById('success-alert');
+                alert.classList.add('show');
+                setTimeout(() => {
+                    alert.classList.remove('show');
+                }, 3000);
+
+                // セッションストレージに保存（デモ用）
+                sessionStorage.setItem('videoUploaded', 'true');
+                sessionStorage.setItem('videoName', file.name);
+            }
+        }
+
+        // 修正版: Word生成（ページリセットを防ぐ）
+        function generateWord() {
+            // データを収集
+            const data = collectFormData();
+
+            // セッションストレージに保存（重要！）
+            sessionStorage.setItem('manualData', JSON.stringify(data));
+            sessionStorage.setItem('wordGenerated', 'true');
+
+            // 成功メッセージ表示
+            showSuccessMessage();
+
+            // ダウンロードボタンを表示
+            showDownloadButton('word');
+
+            // 実際の実装では、ここでサーバーにリクエストを送信してWordファイルを生成
+            console.log('Word生成データ:', data);
+        }
+
+        // 修正版: PDF生成（ページリセットを防ぐ）
+        function generatePDF() {
+            const data = collectFormData();
+
+            sessionStorage.setItem('manualData', JSON.stringify(data));
+            sessionStorage.setItem('pdfGenerated', 'true');
+
+            showSuccessMessage();
+            showDownloadButton('pdf');
+
+            console.log('PDF生成データ:', data);
+        }
+
+        // フォームデータを収集
+        function collectFormData() {
+            return {
+                title: document.getElementById('manual-title').value,
+                summary: document.getElementById('manual-summary').value,
+                steps: [
+                    {
+                        title: document.getElementById('step-1-title').value,
+                        description: document.getElementById('step-1-desc').value
+                    },
+                    {
+                        title: document.getElementById('step-2-title').value,
+                        description: document.getElementById('step-2-desc').value
+                    },
+                    {
+                        title: document.getElementById('step-3-title').value,
+                        description: document.getElementById('step-3-desc').value
+                    }
+                ],
+                settings: {
+                    model: document.getElementById('model-select').value,
+                    mode: document.getElementById('mode-select').value,
+                    audience: document.getElementById('audience-input').value
+                }
+            };
+        }
+
+        // 成功メッセージ表示
+        function showSuccessMessage() {
+            const alert = document.getElementById('generation-success');
+            alert.classList.add('show');
+            setTimeout(() => {
+                alert.classList.remove('show');
+            }, 3000);
+        }
+
+        // ダウンロードボタン表示
+        function showDownloadButton(type) {
+            const downloadSection = document.getElementById('download-section');
+            downloadSection.style.display = 'block';
+
+            if (type === 'word') {
+                const btn = document.getElementById('download-word-btn');
+                btn.style.display = 'flex';
+            } else if (type === 'pdf') {
+                const btn = document.getElementById('download-pdf-btn');
+                btn.style.display = 'flex';
+            }
+        }
+
+        // Word ダウンロード
+        function downloadWord() {
+            const data = sessionStorage.getItem('manualData');
+            if (data) {
+                // デモ用: Blobを作成してダウンロード
+                const blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'dental_manual.docx';
+                a.click();
+                URL.revokeObjectURL(url);
+
+                alert('✅ Wordファイルのダウンロードが開始されました（デモ版）');
+            }
+        }
+
+        // PDF ダウンロード
+        function downloadPDF() {
+            const data = sessionStorage.getItem('manualData');
+            if (data) {
+                const blob = new Blob([data], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'dental_manual.pdf';
+                a.click();
+                URL.revokeObjectURL(url);
+
+                alert('✅ PDFファイルのダウンロードが開始されました（デモ版）');
+            }
+        }
+
+        // ページ読み込み時に状態を復元
+        window.addEventListener('DOMContentLoaded', () => {
+            // 保存されたデータがあれば復元
+            const savedData = sessionStorage.getItem('manualData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                document.getElementById('manual-title').value = data.title;
+                document.getElementById('manual-summary').value = data.summary;
+
+                // ステップデータを復元
+                data.steps.forEach((step, i) => {
+                    const titleInput = document.getElementById(`step-${i+1}-title`);
+                    const descTextarea = document.getElementById(`step-${i+1}-desc`);
+                    if (titleInput && descTextarea) {
+                        titleInput.value = step.title;
+                        descTextarea.value = step.description;
+                    }
+                });
+
+                // 情報アラート表示
+                const alert = document.getElementById('info-alert');
+                alert.classList.add('show');
+            }
+
+            // 生成済みフラグがあればダウンロードボタンを表示
+            if (sessionStorage.getItem('wordGenerated') === 'true') {
+                showDownloadButton('word');
+            }
+            if (sessionStorage.getItem('pdfGenerated') === 'true') {
+                showDownloadButton('pdf');
+            }
+        });
+
+        // フォーム入力時に自動保存
+        document.addEventListener('input', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+                // デバウンスして保存
+                clearTimeout(window.autoSaveTimer);
+                window.autoSaveTimer = setTimeout(() => {
+                    const data = collectFormData();
+                    sessionStorage.setItem('manualData', JSON.stringify(data));
+                    console.log('自動保存しました');
+                }, 1000);
+            }
+        });
+    </script>
+</body>
+</html>

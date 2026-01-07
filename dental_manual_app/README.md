@@ -102,10 +102,16 @@ with st.form(key=f"{key_prefix}_output_form"):
 
 ```
 dental_manual_app/
-├── app.py                      # メインアプリケーション
+├── app.py                      # メインアプリケーション（Streamlit）
+├── preview.html                # HTMLプレビュー版（スタンドアロン）
+├── start_preview.sh            # プレビュー版起動スクリプト
+├── start_streamlit.sh          # Streamlit版起動スクリプト
+├── requirements.txt            # Python依存パッケージ
 ├── state/
+│   ├── __init__.py
 │   └── session_state.py       # セッション状態管理（修正済み）
 ├── ui/
+│   ├── __init__.py
 │   ├── tab_video_source.py    # 動画ソース選択タブ（修正済み）
 │   └── tab_editor.py          # エディタータブ（修正済み）
 ├── output/                     # 生成ファイルの出力先
@@ -114,8 +120,41 @@ dental_manual_app/
 
 ## 🚀 実行方法
 
+### 方法1: HTMLプレビュー版（推奨・簡単）
+
+**修正された出力ボタンの動作を確認できます！**
+
 ```bash
 cd dental_manual_app
+./start_preview.sh
+```
+
+または、直接ブラウザで開く：
+```bash
+# ブラウザで preview.html を開く
+open preview.html  # macOS
+xdg-open preview.html  # Linux
+start preview.html  # Windows
+```
+
+**特徴:**
+- ✅ インストール不要
+- ✅ ブラウザだけで動作
+- ✅ 出力ボタンのリセット問題が修正されていることを確認可能
+- ✅ sessionStorageで状態を保持
+- ✅ 自動保存機能付き
+
+### 方法2: Streamlit版（フル機能版）
+
+```bash
+cd dental_manual_app
+./start_streamlit.sh
+```
+
+または手動で：
+```bash
+cd dental_manual_app
+pip install -r requirements.txt
 streamlit run app.py
 ```
 
@@ -177,6 +216,29 @@ if 'data' in st.session_state:
        st.session_state['debug'] = "コールバック実行"
    ```
 
+## 🎯 プレビュー版の使い方
+
+1. **ブラウザで `preview.html` を開く**
+2. **編集タブに移動**
+3. **マニュアルタイトルや手順を編集**
+4. **「Word生成」または「PDF生成」ボタンをクリック**
+5. **ページがリセットされないことを確認！**
+6. **ダウンロードボタンが表示されることを確認！**
+
+### 修正された動作の確認ポイント
+
+✅ **出力ボタンを押してもページがリセットされない**
+- 編集したデータが保持される
+- フォームの入力内容が消えない
+
+✅ **生成後にダウンロードボタンが表示される**
+- "Download Word" / "Download PDF" ボタンが表示される
+- 何度でもダウンロード可能
+
+✅ **自動保存機能**
+- 入力内容が自動的にsessionStorageに保存される
+- ページをリロードしても復元される
+
 ## 📝 今後の改善案
 
 - [ ] python-docxを使用した実際のWord生成実装
@@ -184,3 +246,10 @@ if 'data' in st.session_state:
 - [ ] 画像の埋め込み機能
 - [ ] より詳細なエラーハンドリング
 - [ ] 進捗バーの表示
+
+## 🔗 関連ファイル
+
+- **`preview.html`** - HTMLプレビュー版（修正動作を確認可能）
+- **`ui/tab_editor.py`** - Streamlit版の修正コード
+- **`start_preview.sh`** - プレビュー版起動スクリプト
+- **`start_streamlit.sh`** - Streamlit版起動スクリプト
