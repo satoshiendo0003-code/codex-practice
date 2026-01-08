@@ -73,9 +73,7 @@ class DocumentGenerator:
         steps = data.get("steps", [])
         for step in steps:
             # ステップタイトル
-            step_title = f"ステップ {step.get('step_number', ''
-
-)}: {step.get('title', '')}"
+            step_title = f"ステップ {step.get('step_number', '')}: {step.get('title', '')}"
             doc.add_heading(step_title, level=2)
 
             # 説明
