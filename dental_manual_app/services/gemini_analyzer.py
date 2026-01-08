@@ -19,7 +19,7 @@ class GeminiAnalyzer:
             api_key: Google Gemini API Key
         """
         genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel('gemini-1.5-pro')
+        self.model = genai.GenerativeModel('gemini-1.5-pro-latest')
 
     def extract_frames(self, video_path: str, num_frames: int = 10) -> List[str]:
         """
