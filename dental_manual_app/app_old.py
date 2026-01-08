@@ -1,6 +1,6 @@
 """
-Dental Manual App - 完全拡張版
-動画から歯科マニュアルを自動生成（全機能搭載）
+Dental Manual App - フル機能版
+動画から歯科マニュアルを自動生成するStreamlitアプリ
 """
 import streamlit as st
 import os
@@ -8,12 +8,10 @@ from datetime import datetime
 from state.session_state import app_state, AppState
 from services.gemini_analyzer import GeminiAnalyzer
 from services.document_generator import DocumentGenerator
-from services.document_generator_extended import ExtendedDocumentGenerator
-from services.youtube_downloader import YouTubeDownloader
 
 # ページ設定
 st.set_page_config(
-    page_title="Dental Manual Generator - 完全版",
+    page_title="Dental Manual Generator",
     page_icon="🦷",
     layout="wide"
 )
@@ -28,8 +26,8 @@ if not app_state.analysis_result:
             st.toast("前回作業していた状態を復元しました", icon="📂")
 
 # タイトル
-st.title("🦷 Dental Manual Generator - 完全版")
-st.markdown("動画から歯科マニュアルを自動生成（PowerPoint/画像カード/YouTube対応）")
+st.title("🦷 Dental Manual Generator")
+st.markdown("動画から歯科マニュアルを自動生成します")
 
 # サイドバー設定
 with st.sidebar:
@@ -76,17 +74,6 @@ with st.sidebar:
         "対象読者",
         value="歯科助手",
         placeholder="例: 歯科助手、新人スタッフ"
-    )
-
-    st.markdown("---")
-
-    # テンプレート選択
-    st.subheader("🎨 デザインテンプレート")
-    template_choice = st.selectbox(
-        "テンプレート",
-        ["modern", "classic", "simple"],
-        index=0,
-        help="Modern: モダンなグラデーション\nClassic: 伝統的なデザイン\nSimple: シンプルなデザイン"
     )
 
 # メインコンテンツ
@@ -145,51 +132,8 @@ with tab1:
         )
 
         if youtube_url:
-            # YouTube URLの検証
-            downloader = YouTubeDownloader()
-
-            if downloader.is_valid_youtube_url(youtube_url):
-                # 動画情報を表示
-                with st.spinner("動画情報を取得中..."):
-                    video_info = downloader.get_video_info(youtube_url)
-
-                if video_info:
-                    st.success("✅ 有効なYouTube URLです")
-
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        st.write(f"**タイトル**: {video_info['title']}")
-                        st.write(f"**投稿者**: {video_info['uploader']}")
-                    with col2:
-                        duration_min = video_info['duration'] // 60
-                        st.write(f"**長さ**: {duration_min}分")
-                        st.write(f"**再生回数**: {video_info['view_count']:,}")
-
-                    # ダウンロードボタン
-                    if st.button("📥 YouTube動画をダウンロード", type="primary"):
-                        progress_placeholder = st.empty()
-
-                        def progress_callback(msg):
-                            progress_placeholder.info(msg)
-
-                        try:
-                            video_path = downloader.download_video(
-                                youtube_url,
-                                progress_callback=progress_callback
-                            )
-
-                            if video_path:
-                                app_state.video_path = video_path
-                                st.success(f"✅ ダウンロード完了: {os.path.basename(video_path)}")
-                                st.balloons()
-                            else:
-                                st.error("❌ ダウンロードに失敗しました")
-
-                        except Exception as e:
-                            st.error(f"❌ ダウンロードエラー: {str(e)}")
-
-            else:
-                st.error("❌ 有効なYouTube URLではありません")
+            st.info("YouTube動画のダウンロード機能は現在開発中です。")
+            st.info("現在はファイルアップロードをご利用ください。")
 
     st.markdown("---")
 
@@ -242,12 +186,12 @@ with tab1:
 
             result = app_state.analysis_result
 
-            st.markdown(f"**タイトル**: {result.get('title', 'N/A')}")
-            st.markdown(f"**概要**: {result.get('summary', 'N/A')}")
-            st.markdown(f"**ステップ数**: {len(result.get('steps', []))}")
+            st.markdown(f"**タイトル:** {result.get('title', 'N/A')}")
+            st.markdown(f"**概要:** {result.get('summary', 'N/A')}")
+            st.markdown(f"**ステップ数:** {len(result.get('steps', []))}")
 
             if result.get('estimated_time'):
-                st.markdown(f"**推定時間**: {result['estimated_time']}")
+                st.markdown(f"**推定時間:** {result['estimated_time']}")
 
 # タブ2: 編集・出力
 with tab2:
@@ -299,7 +243,7 @@ with tab2:
         edited_steps = []
 
         for i, step in enumerate(steps):
-            with st.expander(f"ステップ {step.get('step_number', i+1)}: {step.get('title', '')}", expanded=False):
+            with st.expander(f"ステップ {step.get('step_number', i+1)}: {step.get('title', '')}", expanded=True):
                 step_title = st.text_input(
                     "ステップタイトル",
                     value=step.get('title', ''),
@@ -354,122 +298,78 @@ with tab2:
         st.markdown("---")
 
         # 出力セクション
-        st.subheader("📤 出力（全形式対応）")
+        st.subheader("📤 出力")
 
         # 出力ボタン用のコールバック
         def generate_word_callback():
+            """Wordファイル生成のコールバック"""
             try:
                 st.session_state['updated_data'] = updated_data
                 app_state.analysis_result = updated_data
                 app_state.save_to_disk()
 
                 generator = DocumentGenerator()
-                word_path = generator.generate_word(updated_data, manual_title, manual_summary)
+                word_path = generator.generate_word(
+                    data=updated_data,
+                    title=manual_title,
+                    summary=manual_summary
+                )
 
                 st.session_state['gen_word'] = True
                 st.session_state['gen_word_path'] = word_path
-                st.session_state['gen_success'] = "Word"
+                st.session_state['gen_success'] = True
+
             except Exception as e:
                 st.session_state['gen_error'] = str(e)
+                st.session_state['gen_success'] = False
 
         def generate_pdf_callback():
+            """PDFファイル生成のコールバック"""
             try:
                 st.session_state['updated_data'] = updated_data
                 app_state.analysis_result = updated_data
                 app_state.save_to_disk()
 
                 generator = DocumentGenerator()
-                pdf_path = generator.generate_pdf(updated_data, manual_title, manual_summary)
+                pdf_path = generator.generate_pdf(
+                    data=updated_data,
+                    title=manual_title,
+                    summary=manual_summary
+                )
 
                 st.session_state['gen_pdf'] = True
                 st.session_state['gen_pdf_path'] = pdf_path
-                st.session_state['gen_success'] = "PDF"
+                st.session_state['gen_success'] = True
+
             except Exception as e:
                 st.session_state['gen_error'] = str(e)
+                st.session_state['gen_success'] = False
 
-        def generate_powerpoint_callback():
-            try:
-                st.session_state['updated_data'] = updated_data
-                app_state.analysis_result = updated_data
-                app_state.save_to_disk()
-
-                generator = ExtendedDocumentGenerator()
-                pptx_path = generator.generate_powerpoint(
-                    updated_data,
-                    manual_title,
-                    manual_summary,
-                    template=template_choice
-                )
-
-                st.session_state['gen_pptx'] = True
-                st.session_state['gen_pptx_path'] = pptx_path
-                st.session_state['gen_success'] = "PowerPoint"
-            except Exception as e:
-                st.session_state['gen_error'] = str(e)
-
-        def generate_image_cards_callback():
-            try:
-                st.session_state['updated_data'] = updated_data
-                app_state.analysis_result = updated_data
-                app_state.save_to_disk()
-
-                generator = ExtendedDocumentGenerator()
-                image_paths = generator.generate_image_cards(
-                    updated_data,
-                    manual_title,
-                    template=template_choice
-                )
-
-                st.session_state['gen_images'] = True
-                st.session_state['gen_images_paths'] = image_paths
-                st.session_state['gen_success'] = "画像カード"
-            except Exception as e:
-                st.session_state['gen_error'] = str(e)
-
-        # 出力ボタン（4列）
-        col1, col2, col3, col4 = st.columns(4)
+        # 出力ボタン
+        col1, col2 = st.columns(2)
 
         with col1:
             st.button(
-                "📄 Word",
+                "📄 Word生成",
                 on_click=generate_word_callback,
-                key="btn_word",
+                key="btn_generate_word",
                 use_container_width=True,
                 type="primary"
             )
 
         with col2:
             st.button(
-                "📕 PDF",
+                "📕 PDF生成",
                 on_click=generate_pdf_callback,
-                key="btn_pdf",
-                use_container_width=True,
-                type="primary"
-            )
-
-        with col3:
-            st.button(
-                "📊 PowerPoint",
-                on_click=generate_powerpoint_callback,
-                key="btn_pptx",
-                use_container_width=True,
-                type="primary"
-            )
-
-        with col4:
-            st.button(
-                "🖼️ 画像カード",
-                on_click=generate_image_cards_callback,
-                key="btn_images",
+                key="btn_generate_pdf",
                 use_container_width=True,
                 type="primary"
             )
 
         # 成功/エラーメッセージ
         if st.session_state.get('gen_success'):
-            format_name = st.session_state['gen_success']
-            st.success(f"✅ {format_name}の生成が完了しました！")
-            st.session_state['gen_success'] = None
+            st.success("✅ 生成が完了しました！")
+            st.session_state['gen_success'] = False
 
         if st.session_state.get('gen_error'):
             st.error(f"❌ 生成エラー: {st.session_state['gen_error']}")
@@ -479,72 +379,37 @@ with tab2:
         st.markdown("---")
         st.subheader("📥 ダウンロード")
 
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2 = st.columns(2)
 
-        # Word
         with col1:
             if st.session_state.get('gen_word') and st.session_state.get('gen_word_path'):
                 word_path = st.session_state['gen_word_path']
                 if os.path.exists(word_path):
                     with open(word_path, "rb") as f:
                         st.download_button(
-                            "📄 Word",
+                            "📄 Download Word",
                             data=f,
                             file_name=os.path.basename(word_path),
                             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                            key="dl_word",
+                            key="download_word",
                             use_container_width=True
                         )
 
-        # PDF
         with col2:
             if st.session_state.get('gen_pdf') and st.session_state.get('gen_pdf_path'):
                 pdf_path = st.session_state['gen_pdf_path']
                 if os.path.exists(pdf_path):
                     with open(pdf_path, "rb") as f:
                         st.download_button(
-                            "📕 PDF",
+                            "📕 Download PDF",
                             data=f,
                             file_name=os.path.basename(pdf_path),
                             mime="application/pdf",
-                            key="dl_pdf",
+                            key="download_pdf",
                             use_container_width=True
                         )
-
-        # PowerPoint
-        with col3:
-            if st.session_state.get('gen_pptx') and st.session_state.get('gen_pptx_path'):
-                pptx_path = st.session_state['gen_pptx_path']
-                if os.path.exists(pptx_path):
-                    with open(pptx_path, "rb") as f:
-                        st.download_button(
-                            "📊 PowerPoint",
-                            data=f,
-                            file_name=os.path.basename(pptx_path),
-                            mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                            key="dl_pptx",
-                            use_container_width=True
-                        )
-
-        # 画像カード
-        with col4:
-            if st.session_state.get('gen_images') and st.session_state.get('gen_images_paths'):
-                image_paths = st.session_state['gen_images_paths']
-                if image_paths:
-                    st.write(f"🖼️ {len(image_paths)}枚生成")
-                    for img_path in image_paths:
-                        if os.path.exists(img_path):
-                            with open(img_path, "rb") as f:
-                                st.download_button(
-                                    f"📥 {os.path.basename(img_path)}",
-                                    data=f,
-                                    file_name=os.path.basename(img_path),
-                                    mime="image/png",
-                                    key=f"dl_{os.path.basename(img_path)}",
-                                    use_container_width=True
-                                )
 
 # フッター
 st.markdown("---")
 st.markdown("Made with ❤️ for dental professionals")
-st.caption("Powered by Google Gemini AI | 完全版 v2.0")
+st.caption("Powered by Google Gemini AI")
