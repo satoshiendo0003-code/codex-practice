@@ -10,6 +10,7 @@ from services.gemini_analyzer import GeminiAnalyzer
 from services.document_generator import DocumentGenerator
 from services.document_generator_extended import ExtendedDocumentGenerator
 from services.youtube_downloader import YouTubeDownloader
+from services.gdrive_downloader import GoogleDriveDownloader
 
 # ページ設定
 st.set_page_config(
@@ -99,7 +100,7 @@ with tab1:
     # ソースタイプ選択
     source_type = st.radio(
         "動画の入力方法を選択",
-        ["ファイルアップロード", "YouTubeリンク"],
+        ["ファイルアップロード", "YouTubeリンク", "Google Driveリンク"],
         key="source_type_radio",
         horizontal=True
     )
@@ -190,6 +191,51 @@ with tab1:
 
             else:
                 st.error("❌ 有効なYouTube URLではありません")
+
+    elif source_type == "Google Driveリンク":
+        gdrive_url = st.text_input(
+            "Google DriveのURLを入力",
+            placeholder="https://drive.google.com/file/d/...",
+            key="gdrive_url_input",
+            help="共有リンクを「リンクを知っている全員」に設定してください"
+        )
+
+        if gdrive_url:
+            # Google Drive URLの検証
+            downloader = GoogleDriveDownloader()
+
+            if downloader.is_valid_gdrive_url(gdrive_url):
+                st.success("✅ 有効なGoogle Drive URLです")
+                st.info("💡 ファイルサイズ制限なし！大きな動画も対応できます")
+
+                # ダウンロードボタン
+                if st.button("📥 Google Driveから動画をダウンロード", type="primary"):
+                    progress_placeholder = st.empty()
+
+                    def progress_callback(msg):
+                        progress_placeholder.info(msg)
+
+                    try:
+                        video_path = downloader.download_video(
+                            gdrive_url,
+                            progress_callback=progress_callback
+                        )
+
+                        if video_path:
+                            app_state.video_path = video_path
+                            file_size_mb = os.path.getsize(video_path) / (1024 * 1024)
+                            st.success(f"✅ ダウンロード完了: {file_size_mb:.1f}MB")
+                            st.balloons()
+                        else:
+                            st.error("❌ ダウンロードに失敗しました")
+
+                    except Exception as e:
+                        st.error(f"❌ ダウンロードエラー: {str(e)}")
+                        st.error("共有設定が「リンクを知っている全員」になっているか確認してください")
+
+            else:
+                st.error("❌ 有効なGoogle Drive URLではありません")
+                st.info("💡 正しい形式: https://drive.google.com/file/d/FILE_ID/view")
 
     st.markdown("---")
 
