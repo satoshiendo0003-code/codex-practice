@@ -8,7 +8,7 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Table, TableStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Table, TableStyle, Image as ReportLabImage
 from reportlab.lib import colors
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
@@ -75,6 +75,15 @@ class DocumentGenerator:
             # ステップタイトル
             step_title = f"ステップ {step.get('step_number', '')}: {step.get('title', '')}"
             doc.add_heading(step_title, level=2)
+
+            # 画像を挿入（存在する場合）
+            if step.get('image_path') and os.path.exists(step['image_path']):
+                try:
+                    doc.add_picture(step['image_path'], width=Inches(4.5))
+                    # 画像の下に空行
+                    doc.add_paragraph()
+                except Exception as e:
+                    print(f"画像の挿入に失敗: {e}")
 
             # 説明
             doc.add_paragraph(step.get('description', ''))
@@ -184,6 +193,16 @@ class DocumentGenerator:
             # ステップタイトル
             step_title = f"ステップ {step.get('step_number', '')}: {step.get('title', '')}"
             story.append(Paragraph(step_title, heading_style))
+
+            # 画像を挿入（存在する場合）
+            if step.get('image_path') and os.path.exists(step['image_path']):
+                try:
+                    img = ReportLabImage(step['image_path'], width=4*inch, height=3*inch)
+                    story.append(Spacer(1, 0.1*inch))
+                    story.append(img)
+                    story.append(Spacer(1, 0.1*inch))
+                except Exception as e:
+                    print(f"画像の挿入に失敗: {e}")
 
             # 説明
             story.append(Paragraph(step.get('description', ''), body_style))

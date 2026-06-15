@@ -166,9 +166,24 @@ class ExtendedDocumentGenerator:
             heading_para.font.bold = True
             heading_para.font.color.rgb = colors["primary"]
 
-            # 説明
+            # 画像を挿入（存在する場合）
+            has_image = False
+            if step.get('image_path') and os.path.exists(step['image_path']):
+                try:
+                    # 画像をスライドの右側に配置
+                    slide.shapes.add_picture(
+                        step['image_path'],
+                        Inches(5.5), Inches(1.5),
+                        width=Inches(4), height=Inches(3)
+                    )
+                    has_image = True
+                except Exception as e:
+                    print(f"画像の挿入に失敗: {e}")
+
+            # 説明（画像がある場合は左側に配置）
+            desc_width = Inches(4.5) if has_image else Inches(9)
             desc_box = slide.shapes.add_textbox(
-                Inches(0.5), Inches(1.5), Inches(9), Inches(2)
+                Inches(0.5), Inches(1.5), desc_width, Inches(2)
             )
             desc_frame = desc_box.text_frame
             desc_frame.word_wrap = True
@@ -177,10 +192,15 @@ class ExtendedDocumentGenerator:
             desc_para.font.size = Pt(16)
             desc_para.font.color.rgb = colors["text"]
 
+            # 重要ポイントと注意事項の配置を調整
+            points_width = Inches(4.5) if has_image else Inches(4.5)
+            warnings_left = Inches(5) if not has_image else Inches(0.5)
+            warnings_top = Inches(5.5) if has_image else Inches(4)
+
             # 重要ポイント
             if step.get('key_points'):
                 points_box = slide.shapes.add_textbox(
-                    Inches(0.5), Inches(4), Inches(4.5), Inches(3)
+                    Inches(0.5), Inches(4), points_width, Inches(3)
                 )
                 points_frame = points_box.text_frame
                 points_frame.word_wrap = True
@@ -201,7 +221,7 @@ class ExtendedDocumentGenerator:
             # 注意事項
             if step.get('warnings'):
                 warnings_box = slide.shapes.add_textbox(
-                    Inches(5), Inches(4), Inches(4.5), Inches(3)
+                    warnings_left, warnings_top, Inches(4.5), Inches(2)
                 )
                 warnings_frame = warnings_box.text_frame
                 warnings_frame.word_wrap = True

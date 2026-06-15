@@ -295,6 +295,25 @@ with tab1:
             if result.get('estimated_time'):
                 st.markdown(f"**推定時間**: {result['estimated_time']}")
 
+            # 抽出されたフレームのプレビュー
+            steps_with_images = [s for s in result.get('steps', []) if s.get('image_path')]
+            if steps_with_images:
+                st.markdown("---")
+                st.markdown("**📸 抽出されたスクリーンショット**")
+
+                # 最大3枚まで表示
+                preview_steps = steps_with_images[:3]
+                cols = st.columns(len(preview_steps))
+
+                for idx, col in enumerate(cols):
+                    step = preview_steps[idx]
+                    if step.get('image_path') and os.path.exists(step['image_path']):
+                        with col:
+                            st.image(step['image_path'], caption=f"ステップ {step.get('step_number', idx+1)}", use_container_width=True)
+
+                if len(steps_with_images) > 3:
+                    st.caption(f"その他 {len(steps_with_images) - 3} 枚のスクリーンショット")
+
 # タブ2: 編集・出力
 with tab2:
     st.subheader("✏️ マニュアル編集")
@@ -346,6 +365,15 @@ with tab2:
 
         for i, step in enumerate(steps):
             with st.expander(f"ステップ {step.get('step_number', i+1)}: {step.get('title', '')}", expanded=False):
+                # スクリーンショット表示
+                if step.get('image_path') and os.path.exists(step['image_path']):
+                    st.image(step['image_path'], caption=f"ステップ {step.get('step_number', i+1)} のスクリーンショット", use_container_width=True)
+                    if step.get('timestamp'):
+                        minutes = int(step['timestamp'] // 60)
+                        seconds = int(step['timestamp'] % 60)
+                        st.caption(f"⏱️ タイムスタンプ: {minutes}:{seconds:02d}")
+                    st.markdown("---")
+
                 step_title = st.text_input(
                     "ステップタイトル",
                     value=step.get('title', ''),
@@ -379,14 +407,24 @@ with tab2:
                         key=f"step_{i}_warnings"
                     )
 
-                # 編集後のステップを保存
-                edited_steps.append({
+                # 編集後のステップを保存（画像パスも保持）
+                edited_step = {
                     'step_number': step.get('step_number', i+1),
                     'title': step_title,
                     'description': step_description,
                     'key_points': [p.strip() for p in key_points.split('\n') if p.strip()],
                     'warnings': [w.strip() for w in warnings.split('\n') if w.strip()]
-                })
+                }
+
+                # 画像パスとタイムスタンプを保持
+                if step.get('image_path'):
+                    edited_step['image_path'] = step['image_path']
+                if step.get('timestamp'):
+                    edited_step['timestamp'] = step['timestamp']
+                if step.get('frame_index') is not None:
+                    edited_step['frame_index'] = step['frame_index']
+
+                edited_steps.append(edited_step)
 
         # 編集後のデータを更新
         updated_data = {
