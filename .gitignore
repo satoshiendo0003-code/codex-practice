@@ -16,7 +16,10 @@ ENV/
 # Dental Manual App specific
 dental_manual_app/uploads/
 dental_manual_app/output/
+dental_manual_app/downloads/
 dental_manual_app/analysis_state.json
+dental_manual_app/.env
+dental_manual_app/state/manual_state.json
 
 # OS files
 .DS_Store
